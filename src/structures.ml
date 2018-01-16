@@ -23,6 +23,7 @@ let dot3d {x=a1;y=a2;z=a3} {x=b1;y=b2;z=b3} =
 let (---) {x=x1;y=y1;z=z1} {x=x2;y=y2;z=z2} = {x = x1-.x2; y = y1-.y2; z = z1-.z2}
 let (-+-) {x=x1;y=y1;z=z1} {x=x2;y=y2;z=z2} = {x = x1+.x2; y = y1+.y2; z = z1+.z2}
 let (-*-) {x=x1;y=y1;z=z1} s = {x = x1*.s; y = y1*.s; z = z1*.s}
+let (-/-) {x=x1;y=y1;z=z1} s = {x = x1/.s; y = y1/.s; z = z1/.s}
 let (-**-) p1 p2 = crossProd3d p1 p2
 let (-.-) p1 p2 = dot3d p1 p2
 let (-||-) p1 p2 = distance3d p1 p2

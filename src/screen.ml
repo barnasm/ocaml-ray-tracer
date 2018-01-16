@@ -9,42 +9,45 @@ module type SCREEN = sig
   val getPxPosList : screen -> point list array array
   (* val getPxPosLazy : unit ->  point list Lazy.t *)
   val getResolution : screen -> resolution
-  val pxPostion : screen -> int -> int -> point
-  (* val screenCreate : point point resolution -> screen *)
+  val pxPostion : screen -> int -> int -> point list
+  val createScreen : screen -> screen
                                   
 end;;
 
-module Screen_Axis_Parallel_Rectangle
-       (* :(SCREEN with type point = point3D and
-        *               type vector = vector3D and
-        *               type resolution = resolution) *)
+type screenRectangleConstrArgs = {p1:point3D; p2:point3D; p3:point3D; resolution:resolution};;
+module Screen_Rectangle
+       :(SCREEN with type point = point3D and
+                     type vector = vector3D and
+                     type resolution = resolution and
+                     type screen = screenRectangleConstrArgs)
   = struct
   type point = point3D
   type vector = vector3D
   type resolution = Structures.resolution
-  type screen = Screen of point * point * resolution
-  (* let mutable width = 256 and mutable height = 256;; *)
+  type screen = screenRectangleConstrArgs
 
-  let createScreen p1 p2 res = Screen (p1, p2, res);;
-  let getResolution (Screen(_,_,res)) = res;;
+  let createScreen scr = scr;;
+  let getResolution scr = scr.resolution;;
 
-  let pxPostion (Screen(p1,p2,res)) r c =
+  let pxPostion scr r c =
+    let res  = scr.resolution in
     let
-      pxw = (abs_float (p1.x -. p2.x)) /. float_of_int(res.width) and
-      pxh = (abs_float (p1.y -. p2.y)) /. float_of_int(res.height)
+      pxw = (scr.p2 --- scr.p1) -/- float_of_int(res.width) and
+      pxh = (scr.p3 --- scr.p1) -/- float_of_int(res.height) 
     in
-    let center = {x= p1.x +. (pxw /. 2.) +. pxw *. float_of_int(c);
-                  y= p1.y -. (pxh /. 2.) -. pxh *. float_of_int(r);
-                  z=0.}
+    let center = scr.p1
+                 -+- ( pxw -*- (float_of_int c +. 0.5))
+                 -+- ( pxh -*- (float_of_int r +. 0.5))
     in
     [(* center; *)
-      {center with x = center.x -. (pxw/.4.); y = center.y -. (pxh/.4.)};
-      {center with x = center.x +. (pxw/.4.); y = center.y -. (pxh/.4.)};
-      {center with x = center.x -. (pxw/.4.); y = center.y +. (pxh/.4.)};
-      {center with x = center.x +. (pxw/.4.); y = center.y +. (pxh/.4.)};
+      center --- (pxw-/-4.) --- (pxh-/-4.);
+      center -+- (pxw-/-4.) --- (pxh-/-4.);
+      center --- (pxw-/-4.) -+- (pxh-/-4.);
+      center -+- (pxw-/-4.) -+- (pxh-/-4.);
     ];;
-  
-  let getPxPosList (Screen(p1,p2,res) as scr) =
+
+  let getPxPosList scr =
+    let res  = scr.resolution in
     let rec iter width height acc =
       for i = 0 to height do
         for j = 0 to width do acc.(i).(j) <- pxPostion scr i j; done;

@@ -10,14 +10,18 @@ let print_p3d p =
   print_float p.y; print_string "\t";
   print_float p.z; print_string "\n";;
 
+let res = {width=ImgFile.width; height=ImgFile.height} ;;
 let p1 = {x= float_of_int(-ImgFile.width) /. 2. ; y= float_of_int(ImgFile.height) /. 2. ;z=0.};;
-let p2 = {x= float_of_int(ImgFile.width) /. 2.  ; y= float_of_int(-ImgFile.height) /. 2. ;z=0.};;
+let p2 = {x= float_of_int(ImgFile.width) /. 2.  ; y= float_of_int(ImgFile.height) /. 2. ;z=0.};;
+let p3 = {x= float_of_int(-ImgFile.width) /. 2.  ; y= float_of_int(-ImgFile.height) /. 2. ;z=0.};;
+
+
 
 let camera = Camera_Point.createCamera {x=0.; y=0.; z= ~-.556.};;
-let screen = Screen_Axis_Parallel_Rectangle.createScreen p1 p2 {width=ImgFile.width; height=ImgFile.height};;
-let pxpos = Screen_Axis_Parallel_Rectangle.getPxPosList screen;;
-let actor = Sphere.createActor {pos={x=0.; y=0.; z= 128.}; radius=64.};;
+let screen = Screen_Rectangle.createScreen {p1=p1; p2=p2; p3=p3; resolution=res};;
+let pxpos = Screen_Rectangle.getPxPosList screen;;
 
+let actor = Sphere.createActor {pos={x=0.; y=0.; z= 128.}; radius=64.};;
 let actor2 = Triangle.createActor {p1={x=0.; y=0.; z=4.}; p2={x=64.; y=0.; z=4.}; p3={x=0.; y=64.; z=4.}};;
 print_p3d @@ Triangle.normalVector p1 actor2;;
 print_int @@ if Triangle.isCollision {start= Camera_Point.getCamPos camera; pxPnt= {x=0.; y=0.; z= 0.}} actor2 = true
