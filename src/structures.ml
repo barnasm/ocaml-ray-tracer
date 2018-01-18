@@ -1,6 +1,8 @@
+let _PI = 3.14159265358979312 ;;
 type resolution = {width:int; height:int};;
 type point3D = {x:float; y:float; z:float};;
 type vector3D = point3D;;
+type color = {r:int; g:int; b:int};;
 (* type ray = {start:point3D ; direction:vector3D};; *)
 type ray = {start:point3D ; pxPnt:point3D};;
 (* type camera = {p:point3D; screen:screen};; *)
@@ -35,13 +37,13 @@ let normalize ({x=x1;y=y1;z=z1} as p) =
   p -*- (1./.dst);;
 
 let angle v1 v2 =
-  let pi = 3.14159265358979312 in
-  acos((normalize v1) -.- (normalize v2)) /. pi *. 360.;;
+  acos((normalize v1) -.- (normalize v2)) /. _PI *. 360.;;
 
 let angleRad v1 v2 =
   acos((normalize v1) -.- (normalize v2));;
 
 let angleFactor v1 v2 =
-  (* let pi = 3.14159265358979312 in *)
-  (* (acos((normalize v1) -.- (normalize v2))) /. pi;; *)
+  (* let a = (normalize v1) -.- (normalize v2) in
+   * if a > 0. then a else 0.;; *)
+  (* (acos((normalize v1) -.- (normalize v2)) /. 2.) /. _PI;; *)
   (((normalize v1) -.- (normalize v2)) -. 1.) /. ~-.2.;;

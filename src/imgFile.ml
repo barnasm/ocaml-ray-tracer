@@ -1,6 +1,6 @@
 let name = "./render/img.bmp"
 and width  = 256
-and height = 128;;
+and height = 256;;
 
 let image = Rgb24.make width height {Color.Rgb.r = 0; g=0; b=0; };;
                     

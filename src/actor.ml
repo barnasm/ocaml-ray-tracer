@@ -7,10 +7,52 @@ module type ACTOR = sig
   type constrArgs
 
   val createActor : constrArgs -> actor
-  val isCollision : ray -> actor -> bool 
-  val collisionPoint : ray -> actor -> point
-  val normalVector : point -> actor -> point (* treat the result as a normal vector *)
+  val isCollision : actor -> ray -> bool 
+  val collisionPoint : actor -> ray -> point
+  val normalVector : actor -> point -> point (* treat the result as a normal vector *)
 end;;
+
+let flip f a b = f b a;; 
+let test (type a) (type r) (type p)
+      (module Actor : ACTOR with type ray = r and type actor = a and type point = p) (actor:a) =
+  Actor.isCollision actor ,
+  Actor.collisionPoint actor ,
+  Actor.normalVector actor 
+  (* {isCollision = Actor.isCollision actor;
+   *  collisionPoint = Actor.collisionPoint actor;
+   *  normalVector = Actor.normalVector actor} *)
+;;
+let isCollision (type r) (type a) (module Actor : ACTOR with type ray = r and type actor = a) ray actor =
+  Actor.isCollision ray actor
+;;
+
+(* type actor = {isCollision:(ray->bool)};; *)
+module Actor (* (Actor:ACTOR) *) 
+       (* : (ACTOR with
+        *      type point = point3D and
+        *      type ray = ray and
+        *      type constrArgs = int) *)
+  = struct
+  type point = point3D
+  type ray = Structures.ray
+  (* type constrArgs = Actor.actor *)
+  type actor = {isCollision : (ray->bool);
+                collisionPoint : (ray->point);
+                normalVector : (point->point)}
+                      
+
+  let isCollision actor ray = actor.isCollision ray;;
+  let collisionPoint actor ray = actor.collisionPoint ray;;
+  let normalVector actor point = actor.normalVector point;;
+  let createActor (type a) (module Actor :
+                            ACTOR with type actor = a and
+                                       type ray = ray and
+                                       type point = point) a  =
+    {isCollision = (Actor.isCollision a);
+     collisionPoint = (Actor.collisionPoint a);
+     normalVector = (Actor.normalVector a)};;
+end;;
+
 
 type sphereConstrArgs = {pos:point3D; radius:float};;
 module Sphere
@@ -25,14 +67,14 @@ module Sphere
   type constrArgs = sphereConstrArgs
 
   let createActor args = (Sphere(args.pos,args.radius));; 
-  let isCollision ray (Sphere(cnt, rad)) =
+  let isCollision (Sphere(cnt, rad)) ray =
     let distanceSq x0 x1 x2 =
       ((distance3d' x1 x0) *. (distance3d' x2 x1) -. ((x1 --- x0) -.- (x2 --- x1))**2.) /. (distance3d' x2 x1)
     in
     if (rad*.rad) < (distanceSq cnt ray.start ray.pxPnt) then false else true ;;
 
   (* closest point *) 
-  let collisionPoint {start=o; pxPnt=p} (Sphere(c, r)) =
+  let collisionPoint (Sphere(c, r)) {start=o; pxPnt=p} =
     let l = normalize @@ p---o in
     let f = (l -.- (o---c)) in
     let s = (f *. f) -. (o ||-|| c) +. (r *. r) in
@@ -42,7 +84,7 @@ module Sphere
       let s = sqrt s in
       o -+- (l -*- min (~-. f +. s) (~-. f -. s));;
 
-  let normalVector p (Sphere(c,_)) =
+  let normalVector (Sphere(c,_)) p =
     p --- c;;
 end;;
 
@@ -62,6 +104,7 @@ module Triangle
 
   let mtir = ref (false, {x=0.; y=0.; z=0.});;
   let mollerTrumboreIntersection ray (Triangle(triangle)) =
+    (* https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm *)
     let edge1 = triangle.p2 --- triangle.p1 in
     let edge2 = triangle.p3 --- triangle.p1 in
     let rayVec = ray.pxPnt --- ray.start in
@@ -77,13 +120,14 @@ module Triangle
     then (mtir := (false, {x=0.; y=0.; z=0.}); !mtir)
     else (mtir := (true, ray.start -+- (rayVec -*- t)); !mtir);;
   
-  let isCollision ray triangle = let (r,_) = mollerTrumboreIntersection ray triangle in r;;
-  let collisionPoint ray triangle =
+  let isCollision triangle ray = let (r,_) = mollerTrumboreIntersection ray triangle in r;;
+  let collisionPoint triangle ray =
     let (t,p) = !mtir in
     if t = false
     then failwith "triangle collision point doesn't exist\n"
     else p;;
 
-  let normalVector p (Triangle(triangle)) =
+  let normalVector (Triangle(triangle)) p =
     (triangle.p1 --- triangle.p2) -**- (triangle.p1 --- triangle.p3);;
 end;;
+
