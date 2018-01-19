@@ -4,59 +4,79 @@ module type ACTOR = sig
   type actor
   type point
   type ray
-  type constrArgs
+  type _ constrArgs
 
-  val createActor : constrArgs -> actor
-  val isCollision : actor -> ray -> bool 
-  val collisionPoint : actor -> ray -> point
-  val normalVector : actor -> point -> point (* treat the result as a normal vector *)
+  val createActor    : 'a constrArgs -> 'a    -> actor
+  val isCollision    : actor         -> ray   -> bool 
+  val collisionPoint : actor         -> ray   -> point
+  val normalVector   : actor         -> point -> point
 end;;
 
-let flip f a b = f b a;; 
-let test (type a) (type r) (type p)
-      (module Actor : ACTOR with type ray = r and type actor = a and type point = p) (actor:a) =
-  Actor.isCollision actor ,
-  Actor.collisionPoint actor ,
-  Actor.normalVector actor 
-  (* {isCollision = Actor.isCollision actor;
-   *  collisionPoint = Actor.collisionPoint actor;
-   *  normalVector = Actor.normalVector actor} *)
-;;
-let isCollision (type r) (type a) (module Actor : ACTOR with type ray = r and type actor = a) ray actor =
-  Actor.isCollision ray actor
-;;
+module type ACTOR_OBJ = sig
+  type actor
+  type point
+  (* type vector = point *)
+  type ray
+  type constrArgs
 
-(* type actor = {isCollision:(ray->bool)};; *)
-module Actor (* (Actor:ACTOR) *) 
-       (* : (ACTOR with
-        *      type point = point3D and
-        *      type ray = ray and
-        *      type constrArgs = int) *)
+  val createActor    : constrArgs -> actor
+  val isCollision    : actor      -> ray   -> bool 
+  val collisionPoint : actor      -> ray   -> point
+  val normalVector   : actor      -> point -> point (* treat the result as a normal vector *)
+end;;
+
+
+module Actor
+       : (ACTOR with
+            type 'a constrArgs =
+                   (module ACTOR_OBJ with
+                             type actor = 'a and
+                             type ray = Structures.ray and
+                             type point = point3D) and
+            type point = point3D and
+            type ray = Structures.ray )
   = struct
   type point = point3D
-  type ray = Structures.ray
-  (* type constrArgs = Actor.actor *)
-  type actor = {isCollision : (ray->bool);
+  type ray = Structures.ray                       
+  type 'a constrArgs =
+    (module ACTOR_OBJ with
+              type actor = 'a and
+              type ray   = ray and
+              type point = point)
+      
+  type actor = {isCollision    : (ray->bool);
                 collisionPoint : (ray->point);
-                normalVector : (point->point)}
-                      
-
-  let isCollision actor ray = actor.isCollision ray;;
-  let collisionPoint actor ray = actor.collisionPoint ray;;
-  let normalVector actor point = actor.normalVector point;;
-  let createActor (type a) (module Actor :
-                            ACTOR with type actor = a and
-                                       type ray = ray and
-                                       type point = point) a  =
-    {isCollision = (Actor.isCollision a);
-     collisionPoint = (Actor.collisionPoint a);
-     normalVector = (Actor.normalVector a)};;
+                normalVector   : (point->point)}
+                  
+                          
+  let isCollision    actor ray   = actor.isCollision ray;;
+  let collisionPoint actor ray   = actor.collisionPoint ray;;
+  let normalVector   actor point = actor.normalVector point;;
+ 
+  let createActor (type a) =
+    function (module Actor :
+              ACTOR_OBJ with
+                       type actor = a   and
+                       type ray   = ray and
+                       type point = point) ->
+      function (a:a) -> 
+        {isCollision    = (Actor.isCollision    a);
+         collisionPoint = (Actor.collisionPoint a);
+         normalVector   = (Actor.normalVector   a)};;
+  
+  (* let createActor (type a) =
+   *   function (module Actor :
+   *             ACTOR_OBJ with type actor = a and
+   *                            type ray = ray and
+   *                            type point = point) ->
+   * 
+   *     createActor2 (module Actor) ;; *)
 end;;
 
 
 type sphereConstrArgs = {pos:point3D; radius:float};;
 module Sphere
-       : (ACTOR with
+       : (ACTOR_OBJ with
             type point = point3D and
             type ray = ray and
             type constrArgs = sphereConstrArgs)
@@ -90,7 +110,7 @@ end;;
 
 type triangleConstrArgs = {p1:point3D; p2:point3D; p3:point3D};;
 module Triangle
-       : (ACTOR with
+       : (ACTOR_OBJ with
             type point = point3D and
             type ray = ray and
             type constrArgs = triangleConstrArgs)

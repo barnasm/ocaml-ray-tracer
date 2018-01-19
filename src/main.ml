@@ -7,6 +7,10 @@ open Stage;;
 
 Random.self_init();;
 
+(* let create (type a) (type c) (type cp)
+ *       (module ActorObj : ACTOR with type actor = a and type constrArgs = a)  (constrArgs: a)= 
+ *   ActorObj.createActor constrArgs;; *)
+
 let print_p3d p =
   print_float p.x; print_string "\t";
   print_float p.y; print_string "\t";
@@ -19,34 +23,46 @@ let p3 = {x= float_of_int(-ImgFile.width) /. 2. ; y= float_of_int(-ImgFile.heigh
 
 let camera = Camera_Point.createCamera {x=0.; y=0.; z= ~-.556.};;
 let screen = Screen_Rectangle.createScreen {p1=p1; p2=p2; p3=p3; resolution=res};;
-(* let pxpos = Screen_Rectangle.getPxPosList screen;; *)
 
 let actor = Sphere.createActor {pos={x=0.; y=0.; z= 128.}; radius=128.};;
-let actor2 = Triangle.createActor {p1={x=0.; y=0.; z=256.}; p2={x=64.; y=64.; z= ~-.10.}; p3={x=64.; y=0.; z=0.}};;
+let actor2 = Triangle.createActor {p1={x= ~-.128.; y= ~-.128.; z= 0.};
+                                   p2={x=    128.; y=    128.; z= 0.};
+                                   p3={x=     64.; y=  ~-.64.; z= 64.}};;
+
+let actor3 = Triangle.createActor {p1={x=128.; y= 128.; z= 0.};
+                                   p2={x=128.; y= 63.;  z= 0.};
+                                   p3={x=64. ; y= 128.; z= 0.}};;
 let actors = [];;
-let actors = Actor.createActor (module Sphere) (Sphere.createActor {pos={x=0.; y=0.; z= 128.}; radius=128.}) :: actors;;
+let actors = Actor.createActor (module Sphere)  actor  :: actors;;
+let actors = Actor.createActor (module Triangle) actor3 :: actors;;
 let actors = Actor.createActor (module Triangle) actor2 :: actors;;
+(* let a = Actor.createActor actor2 (module Triangle);; *)
+(* let  m = (module Triangle:ACTOR);; *)
+(* let a = Actor.createActor2 ((module Triangle:ACTOR), actor2);; *)
 
-print_p3d @@ Triangle.normalVector actor2 p1;;
-print_int @@ if Triangle.isCollision actor2 {start= Camera_Point.getCamPos camera; pxPnt= {x=0.; y=0.; z= 0.}} = true
-             then 1
-             else 0;;
-print_string "\n";;
-print_p3d @@  Triangle.collisionPoint actor2 {start= Camera_Point.getCamPos camera; pxPnt= {x=0.; y=0.; z= 0.}} ;;
-
-let isCollision (type r) (type a) (module Actor : ACTOR with type ray = r and type actor = a) ray actor =
-  Actor.isCollision ray actor
-;;
+let minDst ((d1,_,_)as a1) ((d2,_,_)as a2) =
+  (* todo if distances are equal then create invisible triangle with normal vector turned in a ray direction or take average of normal vectors  *)
+  if d1 < d2 then a1 else a2;;
 
 let computePxColAA ray =
-  let aux actor = 
-    if isCollision (module Sphere) actor ray
-    then let nv = Sphere.normalVector actor (Sphere.collisionPoint actor ray) in
-         let f = angleFactor {x= 1. ; y= 0. ;z= 0.} nv in
-         {r=int_of_float(255.*.f); g=int_of_float(25.*.f); b=int_of_float(55.*.f)}
-    else {r=0; g=0; b=0}
+  let light = {x= 1. ; y= 0. ;z= 0.} in
+  let dstFrom = ray.start in 
+
+  let aux curHitPnt actor =
+    if Actor.isCollision actor ray
+    then let cp =  Actor.collisionPoint actor ray in
+         let dst = (distance3d' dstFrom cp) in
+         match curHitPnt with
+           None -> Some (dst, cp, actor)
+         | Some curMin -> Some (minDst curMin (dst, cp, actor))
+    else curHitPnt
   in
-  List.fold_left aux [] actors
+  match List.fold_left aux None actors with
+    None -> {r=0; g=0; b=0}
+  | Some (_, cp, actor) ->
+     let nv = Actor.normalVector actor cp in
+     let f = angleFactor light nv in
+     {r=int_of_float(255.*.f); g=int_of_float(255.*.f); b=int_of_float(255.*.f)}
 ;;
 let checkRay ray cols = (computePxColAA ray)::cols;;
 let colorAvg cols =
@@ -68,10 +84,10 @@ let genBitmap () =
     for j = 0 to ImgFile.width-1 do
       let c =
         colorAvg @@ List.fold_left
-                      (fun cList camPnt ->
+                      (fun colList camPnt ->
                         List.fold_left
-                          ( fun cList pxPnt -> checkRay {start= camPnt; pxPnt= pxPnt} cList )
-                          cList (Screen_Rectangle.pxPostion screen i j)(* (prevImgMx.(i).(j)) *) )
+                          ( fun colList pxPnt -> checkRay {start= camPnt; pxPnt= pxPnt} colList )
+                          colList (Screen_Rectangle.pxPostion screen i j)(* (prevImgMx.(i).(j)) *) )
                       [] (Camera_Point.getRayStart camera)
       in
       prevImgMx.(i).(j) <- Graphics.rgb c.r c.g c.b(* prevImgMx.(i).(j) <- computePxColAA pxpos.(i).(j) *)
