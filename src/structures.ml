@@ -4,7 +4,7 @@ type point3D = {x:float; y:float; z:float};;
 type vector3D = point3D;;
 type color = {r:int; g:int; b:int};;
 (* type ray = {start:point3D ; direction:vector3D};; *)
-type ray = {start:point3D ; pxPnt:point3D};;
+type ray = {start:point3D ; pnt:point3D};;
 (* type camera = {p:point3D; screen:screen};; *)
 
 let distance3d {x=x1;y=y1;z=z1} {x=x2;y=y2;z=z2} =
@@ -42,8 +42,11 @@ let angle v1 v2 =
 let angleRad v1 v2 =
   acos((normalize v1) -.- (normalize v2));;
 
-let angleFactor v1 v2 =
-  (* let a = (normalize v1) -.- (normalize v2) in
-   * if a > 0. then a else 0.;; *)
-  (* (acos((normalize v1) -.- (normalize v2)) /. 2.) /. _PI;; *)
-  (((normalize v1) -.- (normalize v2)) -. 1.) /. ~-.2.;;
+let angleCos v1 v2 =
+  (normalize v1) -.- (normalize v2);;
+
+(* let angleFactor v1 v2 =
+ *   (\* let a = (normalize v1) -.- (normalize v2) in
+ *    * if a > 0. then a else 0.;; *\)
+ *   (\* (acos((normalize v1) -.- (normalize v2)) /. 2.) /. _PI;; *\)
+ *   (((normalize v1) -.- (normalize v2)) -. 1.) /. ~-.2.;; *)

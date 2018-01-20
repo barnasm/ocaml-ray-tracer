@@ -1,35 +1,35 @@
 open Structures;;
 
-module type ACTOR = sig
-  type actor
-  type point
-  type ray
-  type _ constrArgs
-
-  val createActor    : 'a constrArgs -> 'a    -> actor
-  val isCollision    : actor         -> ray   -> bool 
-  val collisionPoint : actor         -> ray   -> point
-  val normalVector   : actor         -> point -> point
-end;;
-
-module type ACTOR_OBJ = sig
+module type ACTOR_BASE = sig
   type actor
   type point
   (* type vector = point *)
   type ray
-  type constrArgs
 
-  val createActor    : constrArgs -> actor
   val isCollision    : actor      -> ray   -> bool 
   val collisionPoint : actor      -> ray   -> point
   val normalVector   : actor      -> point -> point (* treat the result as a normal vector *)
+
 end;;
 
+module type ACTOR = sig
+  include ACTOR_BASE
+  
+  type _ constrArgs
+  val createActor    : 'a constrArgs -> 'a    -> actor
+end;;
+
+module type ACTOR_OBJ = sig
+  include ACTOR_BASE
+
+  type constrArgs
+  val createActor    : constrArgs -> actor
+end;;
 
 module Actor
        : (ACTOR with
             type 'a constrArgs =
-                   (module ACTOR_OBJ with
+                   (module ACTOR_BASE with
                              type actor = 'a and
                              type ray = Structures.ray and
                              type point = point3D) and
@@ -39,7 +39,7 @@ module Actor
   type point = point3D
   type ray = Structures.ray                       
   type 'a constrArgs =
-    (module ACTOR_OBJ with
+    (module ACTOR_BASE with
               type actor = 'a and
               type ray   = ray and
               type point = point)
@@ -55,7 +55,7 @@ module Actor
  
   let createActor (type a) =
     function (module Actor :
-              ACTOR_OBJ with
+              ACTOR_BASE with
                        type actor = a   and
                        type ray   = ray and
                        type point = point) ->
@@ -63,14 +63,6 @@ module Actor
         {isCollision    = (Actor.isCollision    a);
          collisionPoint = (Actor.collisionPoint a);
          normalVector   = (Actor.normalVector   a)};;
-  
-  (* let createActor (type a) =
-   *   function (module Actor :
-   *             ACTOR_OBJ with type actor = a and
-   *                            type ray = ray and
-   *                            type point = point) ->
-   * 
-   *     createActor2 (module Actor) ;; *)
 end;;
 
 
@@ -91,10 +83,10 @@ module Sphere
     let distanceSq x0 x1 x2 =
       ((distance3d' x1 x0) *. (distance3d' x2 x1) -. ((x1 --- x0) -.- (x2 --- x1))**2.) /. (distance3d' x2 x1)
     in
-    if (rad*.rad) < (distanceSq cnt ray.start ray.pxPnt) then false else true ;;
+    if (rad*.rad) < (distanceSq cnt ray.start ray.pnt) then false else true ;;
 
   (* closest point *) 
-  let collisionPoint (Sphere(c, r)) {start=o; pxPnt=p} =
+  let collisionPoint (Sphere(c, r)) {start=o; pnt=p} =
     let l = normalize @@ p---o in
     let f = (l -.- (o---c)) in
     let s = (f *. f) -. (o ||-|| c) +. (r *. r) in
@@ -127,7 +119,7 @@ module Triangle
     (* https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm *)
     let edge1 = triangle.p2 --- triangle.p1 in
     let edge2 = triangle.p3 --- triangle.p1 in
-    let rayVec = ray.pxPnt --- ray.start in
+    let rayVec = ray.pnt --- ray.start in
     let h = rayVec -**- edge2 in
     let a = edge1 -.- h in
     let f = 1. /. a in
