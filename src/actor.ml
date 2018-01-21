@@ -2,9 +2,9 @@ open Structures;;
 
 module type ACTOR_BASE = sig
   type actor
-  type point
+  type point = point3D
   (* type vector = point *)
-  type ray
+  type ray = Structures.ray
 
   val isCollision    : actor      -> ray   -> bool 
   val collisionPoint : actor      -> ray   -> point
@@ -15,8 +15,8 @@ end;;
 module type ACTOR = sig
   include ACTOR_BASE
   
-  type _ constrArgs
-  val createActor    : 'a constrArgs -> 'a    -> actor
+  type _ constrArgsActor
+  val createActor    : 'a constrArgsActor -> 'a    -> actor
 end;;
 
 module type ACTOR_OBJ = sig
@@ -28,21 +28,15 @@ end;;
 
 module Actor
        : (ACTOR with
-            type 'a constrArgs =
+            type 'a constrArgsActor =
                    (module ACTOR_BASE with
-                             type actor = 'a and
-                             type ray = Structures.ray and
-                             type point = point3D) and
-            type point = point3D and
-            type ray = Structures.ray )
+                             type actor = 'a))
   = struct
   type point = point3D
   type ray = Structures.ray                       
-  type 'a constrArgs =
+  type 'a constrArgsActor =
     (module ACTOR_BASE with
-              type actor = 'a and
-              type ray   = ray and
-              type point = point)
+              type actor = 'a)
       
   type actor = {isCollision    : (ray->bool);
                 collisionPoint : (ray->point);
@@ -56,9 +50,7 @@ module Actor
   let createActor (type a) =
     function (module Actor :
               ACTOR_BASE with
-                       type actor = a   and
-                       type ray   = ray and
-                       type point = point) ->
+                       type actor = a) ->
       function (a:a) -> 
         {isCollision    = (Actor.isCollision    a);
          collisionPoint = (Actor.collisionPoint a);

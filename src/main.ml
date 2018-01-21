@@ -5,6 +5,7 @@ open Camera;;
 open Light;;
 open Actor;;
 open Stage;;
+open Light_emitting_object;;
 
 Random.self_init();;
 
@@ -51,16 +52,16 @@ let cloestActorHitPoint2 ray vec =
 ;;
 
 let inShadow point light f =
-  (* f;; *)
-  match Light.vectorFromPointToLight light point with
-    None -> f
-  | Some (vec) ->
-     match cloestActorHitPoint2 {start=point; pnt=(point --- vec)} vec  with
-       None -> f
-     | Some(d, cp, actor) ->
-        (* f*.(1.-.f)**(1000./.(d**0.5)) *)
-        if d < (distance3d' vec {x=0.;y=0.;z=0.}) then f*.(1.-.f)**(1000./.(d**0.5))  else f 
-;;
+  f;;
+  (* match Light.vectorFromPointToLight light point with
+ *     None -> f
+ *   | Some (vec) ->
+ *      match cloestActorHitPoint2 {start=point; pnt=(point --- vec)} vec  with
+ *        None -> f
+ *      | Some(d, cp, actor) ->
+ *         (\* f*.(1.-.f)**(1000./.(d**0.5)) *\)
+ *         if d < (distance3d' vec {x=0.;y=0.;z=0.}) then f*.(1.-.f)**(1000./.(d**0.5))  else f 
+ * ;; *)
     
 
 let computePxColAA ray =
