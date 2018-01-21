@@ -81,4 +81,5 @@ let lights = Light.createLight (module Light_Point) light3 ::lights;;
  *                (Light_Direction.createLight
  *                   {intensity=0.7;
  *                    direction= {x= ~-.1. ; y= 1. ;z= 0.}}) ::lights;; *)
-(* module Leo = Light_Emitting_Object (Actor) (Light) ;; *)
+let leo = Light_Emitting_Object.createActor (module Triangle) actor2;; 
+let actors = leo:: actors;;
