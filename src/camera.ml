@@ -24,6 +24,6 @@ module Camera_Point : (CAMERA with type point = point3D) = struct
          let rr = rndR() in
          aux (n-1) ((pos -+- {x= rr *. (cos angle); y= rr *. (sin angle); z= 0.})::acc)
     in
-    pos :: aux 0 [];; 
+    pos :: aux 10 [];; 
   let createCamera ?(radius = 1.5) pos = Camera(pos, radius);;
 end;;

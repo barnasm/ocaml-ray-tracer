@@ -51,17 +51,19 @@ let cloestActorHitPoint2 ray vec =
   List.fold_left aux None actors
 ;;
 
-let inShadow point light f =
-  f;;
-  (* match Light.vectorFromPointToLight light point with
- *     None -> f
- *   | Some (vec) ->
- *      match cloestActorHitPoint2 {start=point; pnt=(point --- vec)} vec  with
- *        None -> f
- *      | Some(d, cp, actor) ->
- *         (\* f*.(1.-.f)**(1000./.(d**0.5)) *\)
- *         if d < (distance3d' vec {x=0.;y=0.;z=0.}) then f*.(1.-.f)**(1000./.(d**0.5))  else f 
- * ;; *)
+let inShadow point light anv f =
+  (* f;; *)
+  match Light.vectorFromPointToLight light point with
+    None -> f
+  | Some (vec) ->
+     match cloestActorHitPoint2 {start=point; pnt=(point --- vec)} vec  with
+       None -> f
+     | Some(d, cp, actor) ->
+        (* f*.(1.-.f)**(1000./.(d**0.5)) *)
+        if d < (distance3d' vec {x=0.;y=0.;z=0.})
+        then ((((normalize anv) -.- (normalize vec)) -. 1.) /. ~-.2.) *. f*.(1.-.f)**(500./.(d**1.9))
+        else f 
+;;
     
 
 let computePxColAA ray =
@@ -71,7 +73,7 @@ let computePxColAA ray =
      let nv = Actor.normalVector actor cp in
      (* let actCol = Actor.getColor actor in *)
      (* let f = Light_Point.lightFactor light3 nv cp in *)
-     let f = min 1. @@ List.fold_left (fun f l -> f +. (inShadow cp l (Light.lightFactor l nv cp))) 0. lights in
+     let f = min 1. @@ List.fold_left (fun f l -> f +. (inShadow cp l nv (Light.lightFactor l nv cp))) 0. lights in
      {r=int_of_float(255.*.f); g=int_of_float(255.*.f); b=int_of_float(255.*.f)}
 ;;
 let checkRay ray cols = (computePxColAA ray)::cols;;

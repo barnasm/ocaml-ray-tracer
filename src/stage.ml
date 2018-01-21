@@ -34,7 +34,7 @@ let p3 = {x= ~-.ss ; y= ~-.ss; z=0.};;
  * let p3 = {x= float_of_int(-ImgFile.width) /. 2. ; y= float_of_int(-ImgFile.height) /. 2. ;z=0.};; *)
 
 
-let camera = Camera_Point.createCamera {x=0.; y=0.; z= ~-.64.};;
+let camera = Camera_Point.createCamera {x=0.; y=10.; z= ~-.64.};;
 let screen = Screen_Rectangle.createScreen {p1=p1; p2=p2; p3=p3; resolution=res};;
 
 let p1 = {x= ~-.128. ; y= ~-.64. ;z=0.};;
@@ -81,5 +81,11 @@ let lights = Light.createLight (module Light_Point) light3 ::lights;;
  *                (Light_Direction.createLight
  *                   {intensity=0.7;
  *                    direction= {x= ~-.1. ; y= 1. ;z= 0.}}) ::lights;; *)
-let leo = Light_Emitting_Object.createActor (module Triangle) actor2;; 
-let actors = leo:: actors;;
+
+let pos = {x= ~-.8.; y= ~-.55.; z= 45.} ;;
+let leo = Light_Emitting_Object.createLEO (module Sphere) (module Light_Point)
+            (Sphere.createActor {pos=pos; radius=4.})
+            (Light_Point.createLight   {intensity=36.9; pos=pos; factor=1.0});;
+
+(* let actors = Light_Emitting_Object.getActor leo :: actors;; *)     
+let lights = Light_Emitting_Object.getLight leo :: lights;;
