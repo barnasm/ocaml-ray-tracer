@@ -1,3 +1,6 @@
+#  make && for i in `LANG=en_US seq  0.0 0.75 10.0`; do ./main.native `echo $i +0.0 | bc` &; ./main.native `echo $i + 0.25 | bc` &; ./main.native `echo $i + 0.5 | bc`; done
+
+# opam install camlimage
 
 OCB_FLAGS =  -tag thread -use-ocamlfind -quiet
 OCB_FLAGS += -package camlimages.png -package graphics

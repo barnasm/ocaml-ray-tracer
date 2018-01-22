@@ -1,4 +1,5 @@
 let _PI = 3.14159265358979312 ;;
+
 type resolution = {width:int; height:int};;
 type point3D = {x:float; y:float; z:float};;
 type vector3D = point3D;;
@@ -6,6 +7,13 @@ type color = {r:int; g:int; b:int};;
 (* type ray = {start:point3D ; direction:vector3D};; *)
 type ray = {start:point3D ; pnt:point3D};;
 (* type camera = {p:point3D; screen:screen};; *)
+
+let print_p3d p =
+  print_float p.x; print_string "\t";
+  print_float p.y; print_string "\t";
+  print_float p.z; print_string "\n";;
+
+
 
 let distance3d {x=x1;y=y1;z=z1} {x=x2;y=y2;z=z2} =
   sqrt((x1-.x2)**2. +. (y1-.y2)**2. +. (z1-.z2)**2.);;

@@ -8,12 +8,6 @@ open Stage;;
 open Light_emitting_object;;
 
 Random.self_init();;
-
-let print_p3d p =
-  print_float p.x; print_string "\t";
-  print_float p.y; print_string "\t";
-  print_float p.z; print_string "\n";;
-
 let minDst ((d1,_,_)as a1) ((d2,_,_)as a2) =
   (* todo if distances are equal then create invisible triangle with normal vector turned in a ray direction or take average of normal vectors  *)
   if d1 < d2 then a1 else a2;;
@@ -65,7 +59,6 @@ let inShadow point light anv f =
         else f 
 ;;
     
-
 let computePxColAA ray =
   match cloestActorHitPoint ray with
     None -> {r=0; g=0; b=0}
@@ -98,9 +91,10 @@ let genBitmap () =
         colorAvg @@ List.fold_left
                       (fun colList camPnt ->
                         List.fold_left
-                          ( fun colList pxPnt -> checkRay {start= camPnt; pnt= pxPnt} colList )
+                          ( fun colList pxPnt ->
+                            checkRay (Camera.lensMap camera {start= camPnt; pnt= pxPnt}) colList )
                           colList (Screen_Rectangle.pxPostion screen i j)(* (prevImgMx.(i).(j)) *) )
-                      [] (Camera_Point.getRayStart camera)
+                      [] (Camera.getRayStart camera)
       in
       prevImgMx.(i).(j) <- Graphics.rgb c.r c.g c.b(* prevImgMx.(i).(j) <- computePxColAA pxpos.(i).(j) *)
     done;
@@ -109,9 +103,9 @@ genBitmap();;
 
 ImgFile.dump_to_file prevImgMx;;
 
-Graphics.draw_image (Graphics.make_image prevImgMx) 0 0;;
+(* Graphics.draw_image (Graphics.make_image prevImgMx) 0 0;; *)
 
-Graphics.wait_next_event [Graphics.Key_pressed];;
+(* Graphics.wait_next_event [Graphics.Key_pressed];; *)
 (* Graphics.loop_at_exit [Graphics.Key_pressed] (fun _ -> ());; *)
 Graphics.close_graph ();;
 

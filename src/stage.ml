@@ -5,25 +5,6 @@ open Actor;;
 open Light;;
 open Light_emitting_object;;
 
-(* module type STAGE = sig
- *   type stage
- *   type actors
- *   val addActor  : Actor.actor -> actors
- *   val getActors : ()          -> actors
- * end;; *)
-
-(* module Stage = struct
- *   (\* type actors = Actor.actor list *\)
- *   (\* type lights = Light list *\)
- *   (\* type camera = Camera *\)
- *   let addActor a = a::act
- *   let 
- * end;; *)
-
-(* let ftest2 (type r) (type a) (module Actor : ACTOR with type ray = r and type actor = a) ray actor =
- *   Actor.isCollision ray actor
- * ;; *)
-
 let res = {width=ImgFile.width; height=ImgFile.height} ;;
 let ss = 32.;;
 let p1 = {x= ~-.ss ; y= ss; z= 0.};;
@@ -33,8 +14,11 @@ let p3 = {x= ~-.ss ; y= ~-.ss; z=0.};;
  * let p2 = {x= float_of_int(ImgFile.width)  /. 2. ; y= float_of_int(ImgFile.height)  /. 2. ;z=0.};;
  * let p3 = {x= float_of_int(-ImgFile.width) /. 2. ; y= float_of_int(-ImgFile.height) /. 2. ;z=0.};; *)
 
-
-let camera = Camera_Point.createCamera {x=0.; y=10.; z= ~-.64.};;
+let i = float_of_string @@ Sys.argv.(1);;
+let focus={x= ~-.32. +. i*.6.; y= 0.; z= 64. +. i*.19.};;
+module Camera = Camera_Disk (Lens_Camera_Focus);;
+let lens = Camera.Lens.createLens {point={x= ~-.32. +. i*.6.; y= 0.; z= 64. +. i*.19.}};;
+let camera = Camera.createCamera lens {x=0.; y=20.-. i; z= ~-.56.-.i};;
 let screen = Screen_Rectangle.createScreen {p1=p1; p2=p2; p3=p3; resolution=res};;
 
 let p1 = {x= ~-.128. ; y= ~-.64. ;z=0.};;
@@ -70,7 +54,7 @@ let actors = Actor.createActor (module Triangle) (Triangle.createActor {p1=p4; p
 
 (* #################################################################################### *)
 let light  = Light_Environment.createLight {intensity=0.05};;
-let light2 = Light_Direction.createLight   {intensity=0.6; direction= ({x= 0.5 ; y= ~-.1. ;z= 0.5} -*- 1000.)};;
+let light2 = Light_Direction.createLight   {intensity=0.6; direction= ({x= 0.5 +. (i/.10.) ; y= ~-.1. ;z= 0.5} -*- 1000.)};;
 let light3 = Light_Point.createLight   {intensity=1000.9; pos= {x= 64.; y= ~-.4.; z= 128.}; factor=0.8};;
 
 let lights = [];;

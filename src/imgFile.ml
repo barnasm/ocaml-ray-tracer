@@ -1,4 +1,4 @@
-let name = "./render/img.bmp"
+let name = "./render/anim/img" ^ Sys.argv.(1) ^ ".bmp"
 and width  = 256
 and height = 256;;
 
