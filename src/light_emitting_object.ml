@@ -1,6 +1,10 @@
 open Light
 open Actor
 open Structures
+
+(*#################################################
+ PROTOTYPE - doesn't work
+ ################################################# *)
        
 (* module Light_Emitting_Object = (
  *   struct

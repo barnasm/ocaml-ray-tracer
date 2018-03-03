@@ -5,14 +5,14 @@ open Camera;;
 open Light;;
 open Actor;;
 open Stage;;
-open Light_emitting_object;;
+(* open Light_emitting_object;; *)
 
 Random.self_init();;
 let minDst ((d1,_,_)as a1) ((d2,_,_)as a2) =
   (* todo if distances are equal then create invisible triangle with normal vector turned in a ray direction or take average of normal vectors  *)
   if d1 < d2 then a1 else a2;;
 
-let cloestActorHitPoint ray =
+let cloestActorHitPoint ray =   (* do poprawki *)
   let dstFrom = ray.start in 
   let aux curHitPnt actor =
     if Actor.isCollision actor ray
@@ -28,7 +28,7 @@ let cloestActorHitPoint ray =
   List.fold_left aux None actors
 ;;
 
-let cloestActorHitPoint2 ray vec =
+let cloestActorHitPoint2 ray vec = (* w zasadzieduplikacja *)
   let dstFrom = ray.start in 
   let aux curHitPnt actor =
     if Actor.isCollision actor ray
@@ -45,7 +45,7 @@ let cloestActorHitPoint2 ray vec =
   List.fold_left aux None actors
 ;;
 
-let inShadow point light anv f =
+let inShadow point light anv f = (* sprawdzic czy nie tracimy dokladnosi w obliczeniach i czy wszystkie sa konieczne *)
   (* f;; *)
   match Light.vectorFromPointToLight light point with
     None -> f
@@ -59,7 +59,7 @@ let inShadow point light anv f =
         else f 
 ;;
     
-let computePxColAA ray =
+let computePxColAA ray =        (* cienie na szybko *)
   match cloestActorHitPoint ray with
     None -> {r=0; g=0; b=0}
   | Some (_, cp, actor) ->
@@ -83,6 +83,7 @@ let colorAvg cols =
 Graphics.open_graph "";;
 Graphics.resize_window ImgFile.width ImgFile.height;;
 let prevImgMx = Graphics.dump_image @@ Graphics.create_image ImgFile.width ImgFile.height;;
+(* let prevImgMx = Array.make_matrix ImgFile.height ImgFile.width Graphics.black;; *)
 
 let genBitmap () = 
   for i = 0 to ImgFile.height-1 do
@@ -96,19 +97,14 @@ let genBitmap () =
                           colList (Screen_Rectangle.pxPostion screen i j)(* (prevImgMx.(i).(j)) *) )
                       [] (Camera.getRayStart camera)
       in
-      prevImgMx.(i).(j) <- Graphics.rgb c.r c.g c.b(* prevImgMx.(i).(j) <- computePxColAA pxpos.(i).(j) *)
+      prevImgMx.(i).(j) <- Graphics.rgb c.r c.g c.b
     done;
   done;;
 genBitmap();;
 
 ImgFile.dump_to_file prevImgMx;;
 
-(* Graphics.draw_image (Graphics.make_image prevImgMx) 0 0;; *)
-
-(* Graphics.wait_next_event [Graphics.Key_pressed];; *)
+Graphics.draw_image (Graphics.make_image prevImgMx) 0 0;;
+Graphics.wait_next_event [Graphics.Key_pressed];;
 (* Graphics.loop_at_exit [Graphics.Key_pressed] (fun _ -> ());; *)
 Graphics.close_graph ();;
-
-
-(* with
- *   | Graphic_failure("fatal I/O error") -> print_string "exit - not saved\n" *)

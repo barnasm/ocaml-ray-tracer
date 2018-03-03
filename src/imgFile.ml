@@ -1,4 +1,4 @@
-let name = "./render/anim/img" ^ Sys.argv.(1) ^ ".bmp"
+let name = "./render/img" ^ Sys.argv.(1) ^ ".bmp"
 and width  = 256
 and height = 256;;
 
@@ -11,11 +11,11 @@ let setPxColor x y col =
   Rgb24.set image x y col;;
 
 let dump_to_file mx =
-for i = 0 to height-1 do
-  for j = 0 to width - 1 do
-    let col = mx.(i).(j) in
-    Rgb24.set image j i {Color.Rgb.r = (col lsr 16) land 255; g= (col lsr 8) land 255; b=col land (255); };
+  for i = 0 to height-1 do
+    for j = 0 to width - 1 do
+      let col = mx.(i).(j) in
+      Rgb24.set image j i {Color.Rgb.r = (col lsr 16) land 255; g= (col lsr 8) land 255; b=col land (255); };
+    done;
   done;
-done;
-save();;
+  save();;
 

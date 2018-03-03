@@ -7,7 +7,7 @@ module type ACTOR_BASE = sig
   type ray = Structures.ray
 
   val isCollision    : actor      -> ray   -> bool 
-  val collisionPoint : actor      -> ray   -> point
+  val collisionPoint : actor      -> ray   -> point 
   val normalVector   : actor      -> point -> point (* treat the result as a normal vector *)
 
 end;;

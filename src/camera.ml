@@ -100,6 +100,6 @@ module Camera_Disk (Lens : LENS) : (CAMERA with type point = point3D) = struct
          (* aux (n-1) ((pos -+- {x= rr *. (cos angle); y= rr *. (sin angle); z= 0.})::acc) *)
          aux (n-1) ((pos -+- (((normalize u) -*- x) -+- ((normalize w) -*- y)))::acc)
     in
-    pos :: aux 1200 [];; 
+    pos :: aux 0 [];; 
   
 end;;

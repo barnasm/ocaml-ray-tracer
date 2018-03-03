@@ -56,7 +56,9 @@ module Light_Direction
     (* let a = (normalize v1) -.- (normalize v2) in
      * if a > 0. then a else 0.;; *)
     (* (acos((normalize v1) -.- (normalize v2)) /. 2.) /. _PI;; *)
-    (((normalize light.direction) -.- (normalize vec)) -. 1.) /. ~-.2. *. light.intensity;;
+    ((angleCos light.direction vec) -. 1.) /. ~-.2. *. light.intensity;;
+    (* (~-.(angleCos light.direction vec)) *. light.intensity;; *)
+  
   let vectorFromPointToLight light _ = Some (light.direction);;
 end;;
 
